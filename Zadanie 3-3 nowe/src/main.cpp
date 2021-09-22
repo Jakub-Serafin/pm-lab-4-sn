@@ -1,44 +1,37 @@
-#include <Arduino.h>
 #include <LiquidCrystal.h>
-
+#include <stdio.h>
 
 // Inicjalizacja obiektu klasy LiquidCrystal: RS, E, DB4, DB5, DB6, DB7
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
-char tablica [] = "Jakub";
-int tabLen = 0;
+char rxBuff[32];
+int ValueA = 0, ValueB = 0;
+char operation[16];
 
-void lcdClear(void);
 
 void setup() {
     lcd.begin(16, 2); //Ustawienie liczby kolumn i wierszy
-    lcd.print("Serafin"); //Komunikat powitalny  
     lcd.print("Jakub Serafin"); //Komunikat powitalny  
-    tabLen = sizeof(tablica);
-    delay(2000);
+    Serial.begin(9600);
 }
 
 void loop() {  
-    lcd.setCursor(0, 1); // Przesunięcie kursora do początku drugiego wiersza
-    lcd.print(millis() / 1000); //Wyświetlenie liczby sekund od uruchomienia
-    delay(500); // Odczekanie w celu uniknięcia zbyt częstego odświeżania zawartości wyświetlacza
-    for (int i = 0; i < (18 - tabLen); i++){
-        lcdClear();
-        lcd.setCursor(i, 0);
-        lcd.print(tablica);
-        delay(1000);    
-    }
+    Serial.readBytesUntil('\r', rxBuff, sizeof(rxBuff) - 1);
 
-    for (int i = (17 - tabLen); i >= 0; i--){
-        lcdClear();
-        lcd.setCursor(i, 1);
-        lcd.print(tablica);
-        delay(1000);
-    }
-}
+    sscanf(rxBuff, "%d%s%d", ValueA, operation, ValueB);
 
-void lcdClear(void){
-    lcd.setCursor(0, 0);
-    lcd.print("................");
+    // Odczyt wartości i ich konwersja
+    lcd.setCursor(0, 0); //W pierwszym wierszu jest wpisany tekst
+    lcd.print(rxBuff);
     lcd.setCursor(0, 1);
-    lcd.print("................");
+  
+  if (strcmp(operation, "+")) {
+    lcd.print(ValueA + ValueB);
+  } else if (strcmp(operation, "-")) {
+     lcd.print(ValueA - ValueB);
+  } else {
+     lcd.print("Brak obslugi ");
+  }
+  delay(4000);
+
+    // Wykonanie obliczeń i wyświetlenie wyniku
 } 
